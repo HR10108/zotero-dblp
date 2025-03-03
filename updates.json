@@ -1,0 +1,19 @@
+{
+  "addons": {
+    "metadata-updater@zotero.example.org": {
+      "updates": [
+        {
+          "version": "1.0",
+          "update_link": "https://example.org/zotero-plugins/metadata-updater/metadata-updater-1.0.xpi",
+          "update_hash": "sha256:123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "6.999",
+              "strict_max_version": "7.0.*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

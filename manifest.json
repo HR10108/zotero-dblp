@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Metadata Updater",
+  "version": "1.0",
+  "description": "Updates bibliography metadata from online sources like DBLP and Google Scholar",
+  "author": "Zotero User",
+  "icons": {
+    "48": "icon.png",
+    "96": "icon@2x.png"
+  },
+  "applications": {
+    "zotero": {
+      "id": "metadata-updater@zotero.example.org",
+      "update_url": "https://example.org/zotero-plugins/metadata-updater/updates.json",
+      "strict_min_version": "6.999",
+      "strict_max_version": "7.0.*"
+    }
+  }
+}
