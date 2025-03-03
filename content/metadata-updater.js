@@ -42,6 +42,15 @@ Zotero.MetadataUpdater = {
         
         var unavailableItems = [];
         var availableItems = [];
+        var ccfItems = []; // Track items with CCF ranks
+        
+        // Initialize CCF Rank Detector
+        try {
+            await Zotero.CCFRankDetector.init();
+        } catch (error) {
+            Zotero.debug("CCF Rank Detector initialization error: " + error);
+            // Continue without CCF ranking if initialization fails
+        }
         
         const searchUrlBases = {
             dblp: {
@@ -70,6 +79,19 @@ Zotero.MetadataUpdater = {
             if (Zotero.ItemTypes.getName(item.itemTypeID) == "computerProgram") {
                 // Skip if the literature type is software
                 continue;
+            }
+            
+            // Check for CCF rank first
+            try {
+                const rankInfo = Zotero.CCFRankDetector.detectRank(item);
+                if (rankInfo) {
+                    item = Zotero.CCFRankDetector.addRankToItem(item, rankInfo);
+                    await item.saveTx();
+                    ccfItems.push([item, rankInfo.rank]);
+                }
+            } catch (error) {
+                Zotero.debug("CCF rank detection error: " + error);
+                // Continue even if CCF rank detection fails
             }
             
             for (let searchUrlBaseName in searchUrlBases) {
@@ -134,6 +156,18 @@ Zotero.MetadataUpdater = {
                         newItem = await this.copyAttachments(newItem, item);
                         // Also associate the old item with the new item
                         item.addRelatedItem(newItem);
+                        
+                        // Transfer any CCF ranking to the new item
+                        try {
+                            const rankInfo = Zotero.CCFRankDetector.detectRank(newItem);
+                            if (rankInfo) {
+                                newItem = Zotero.CCFRankDetector.addRankToItem(newItem, rankInfo);
+                                ccfItems.push([newItem, rankInfo.rank]);
+                            }
+                        } catch (error) {
+                            Zotero.debug("CCF rank detection error for new item: " + error);
+                        }
+                        
                         // Don't delete the old item to avoid losing other types of information
                     }
                     // Save the old item (to save updates or establish associations)
@@ -184,6 +218,14 @@ Zotero.MetadataUpdater = {
                     "] " +
                     item[0].getField("title") +
                     "\n";
+            }
+        }
+        
+        if (ccfItems.length > 0) {
+            message += "\n";
+            message += "CCF Rankings detected for the following items:\n";
+            for (let item of ccfItems) {
+                message += "CCF-" + item[1] + " => " + item[0].getField("title") + "\n";
             }
         }
         
